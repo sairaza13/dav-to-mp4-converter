@@ -5,6 +5,8 @@ Automatically convert DAV surveillance files to MP4 format optimized for macOS Q
 ## Features
 
 ✓ **Batch processing** - Convert entire folders recursively  
+✓ **Replace originals** - Replace DAV files with converted versions in-place  
+✓ **Backup support** - Optional backup of original files before replacement  
 ✓ **Smart detection** - Automatically skips already-compatible formats  
 ✓ **Corruption detection** - Identifies and skips damaged files  
 ✓ **Conversion tracking** - Registry prevents re-converting files  
@@ -12,6 +14,7 @@ Automatically convert DAV surveillance files to MP4 format optimized for macOS Q
 ✓ **macOS optimized** - QuickTime native container optimization  
 ✓ **Detailed logging** - Full conversion history with timestamps  
 ✓ **Dry-run mode** - Preview conversions before executing  
+✓ **Quick Action** - Right-click folder integration on macOS  
 
 ## Installation
 
@@ -25,12 +28,18 @@ brew install ffmpeg
 python3 --version
 ```
 
-### Setup
+### Quick Setup (One Command)
+
+```bash
+brew install ffmpeg && mkdir -p ~/dav-converter && cd ~/dav-converter && curl -fsSL https://raw.githubusercontent.com/sairaza13/dav-to-mp4-converter/main/dav_to_mp4_converter.py -o dav_to_mp4_converter.py && chmod +x dav_to_mp4_converter.py && echo '✅ Setup complete!'
+```
+
+### Manual Setup
 
 1. Clone or download this project
 2. Make scripts executable:
    ```bash
-   chmod +x batch_convert.sh dav_to_mp4_converter.py
+   chmod +x dav_to_mp4_converter.py batch_convert.sh
    ```
 
 3. Optional: Add to PATH for global access
@@ -40,42 +49,48 @@ python3 --version
 
 ## Usage
 
-### Basic Usage
+### Basic Conversion (Keep Original + Create Copy)
 
 ```bash
-# Convert all DAV files in a folder
-./batch_convert.sh /path/to/videos
-
-# Or directly with Python
 python3 dav_to_mp4_converter.py /path/to/videos
+```
+
+### Replace Original Files
+
+```bash
+# Replace DAV files with MP4 (no backup)
+python3 dav_to_mp4_converter.py /path/to/videos --replace-original
+
+# Replace WITH backup of originals
+python3 dav_to_mp4_converter.py /path/to/videos --replace-original --backup-dir ~/dav-backups
 ```
 
 ### Preview Conversions (Dry-Run)
 
 ```bash
-./batch_convert.sh /path/to/videos --dry-run
+python3 dav_to_mp4_converter.py /path/to/videos --dry-run
 ```
 
 ### Choose Conversion Format
 
 ```bash
-# Standard H.264 (best compatibility)
-./batch_convert.sh /path/to/videos --preset mp4_h264
+# Standard H.264 (best compatibility) - DEFAULT
+python3 dav_to_mp4_converter.py /path/to/videos --preset mp4_h264
 
-# Modern H.265 (smaller file size)
-./batch_convert.sh /path/to/videos --preset mp4_h265
+# Modern H.265 (smaller file size, ~40% reduction)
+python3 dav_to_mp4_converter.py /path/to/videos --preset mp4_h265
 
 # Professional ProRes MOV
-./batch_convert.sh /path/to/videos --preset mov_prores
+python3 dav_to_mp4_converter.py /path/to/videos --preset mov_prores
 
 # QuickTime native MOV
-./batch_convert.sh /path/to/videos --preset mov_h264
+python3 dav_to_mp4_converter.py /path/to/videos --preset mov_h264
 ```
 
 ### Analyze Files Only
 
 ```bash
-./batch_convert.sh /path/to/videos --analyze-only
+python3 dav_to_mp4_converter.py /path/to/videos --analyze-only
 ```
 
 ### Force Re-conversion
@@ -83,8 +98,24 @@ python3 dav_to_mp4_converter.py /path/to/videos
 ```bash
 # By default, converted files are tracked and skipped
 # To reconvert everything:
-./batch_convert.sh /path/to/videos --no-skip-existing
+python3 dav_to_mp4_converter.py /path/to/videos --no-skip-existing
 ```
+
+## macOS Quick Action (Right-Click Integration)
+
+Add a right-click "Convert DAV to MP4" option to folders:
+
+1. Open **Automator.app** (Applications → Automator)
+2. File → New → **Quick Action**
+3. Set workflow to receive: **folders** in **Finder**
+4. Search for and add: **Run Shell Script**
+5. Paste this command:
+   ```bash
+   python3 ~/dav-converter/dav_to_mp4_converter.py "$@" --replace-original --backup-dir ~/dav-converter/backups
+   ```
+6. Save as: **"Convert DAV to MP4"**
+
+Now right-click any folder → **Quick Actions** → **Convert DAV to MP4** ✅
 
 ## Output Formats Explained
 
@@ -159,7 +190,7 @@ brew install ffmpeg
 
 ### Conversion is slow
 - This is normal for DAV files (typically low-quality)
-- Reduce quality with different preset settings
+- Try H.265 preset for faster compression
 - Larger files naturally take longer
 
 ### File appears corrupted
@@ -171,14 +202,23 @@ The tool skips files with:
 ### QuickTime won't play the file
 Try different presets:
 ```bash
-# Use MOV native format
-./batch_convert.sh /path/to/videos --preset mov_h264
+python3 dav_to_mp4_converter.py /path/to/videos --preset mov_h264
 ```
 
 ### Conversion stopped mid-way
 Check `conversion.log` for error details:
 ```bash
 tail -50 conversion.log
+```
+
+### "Folder not found" error
+Make sure to use the actual path, not `/path/to/videos`:
+```bash
+# Find your actual folder
+ls -la ~/Videos/
+
+# Then use the real path
+python3 dav_to_mp4_converter.py ~/Videos/MySecurityFootage --replace-original
 ```
 
 ## Performance Tips
@@ -196,13 +236,28 @@ tail -50 conversion.log
 - ffmpeg (via Homebrew: `brew install ffmpeg`)
 - Minimum 5GB free disk space (for conversion temp files)
 
+## Command Reference
+
+| Command | Purpose |
+|---------|----------|
+| `python3 dav_to_mp4_converter.py /path` | Convert, keep originals |
+| `--replace-original` | Replace DAV with MP4 in same location |
+| `--backup-dir ~/backups` | Backup originals before replacement |
+| `--preset mp4_h264` | H.264 (default) |
+| `--preset mp4_h265` | H.265 (smaller files) |
+| `--preset mov_prores` | ProRes (professional) |
+| `--preset mov_h264` | MOV H.264 (native QuickTime) |
+| `--dry-run` | Preview without converting |
+| `--analyze-only` | Analyze files only |
+| `--no-skip-existing` | Reconvert already converted files |
+
 ## License
 
 MIT License - Free to use and modify
 
 ## Support
 
-For issues or feature requests, check the logs:
+For issues, check the logs:
 ```bash
 tail -f conversion.log
 ```

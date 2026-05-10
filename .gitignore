@@ -1,0 +1,40 @@
+# Logs
+*.log
+conversion.log
+
+# Conversion registry
+.conversion_registry.json
+
+# Temp files
+.*_temp.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Video files (optional - don't commit large videos)
+*.dav
+*.mp4
+*.mov
+*.mkv
+*.avi
